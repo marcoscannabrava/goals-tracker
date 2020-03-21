@@ -1,4 +1,7 @@
-// Used Dave's work as a framework: https://github.com/Davepar/gcalendarsync
+// Script to synchronize a calendar to a spreadsheet and vice versa.
+//
+// See https://github.com/Davepar/gcalendarsync for instructions on setting this up.
+//
 
 // Set this value to match your calendar!!!
 // Calendar ID can be found in the "Calendar Address" section of the Calendar Settings.
@@ -60,10 +63,6 @@ function onOpen() {
     },
     {
       name: 'Update to Calendar',
-      functionName: 'syncToCalendar'
-    },
-    {
-      name: 'Test App',
       functionName: 'syncToCalendar'
     }
   ];
@@ -272,9 +271,7 @@ function updateEvent(calEvent, convertedCalEvent, sheetEvent) {
   return numChanges;
 }
 
-// --------------------------------------------------------------------------------------
-// ---------------------- Synchronize from calendar to spreadsheet ----------------------
-// --------------------------------------------------------------------------------------
+// Synchronize from calendar to spreadsheet.
 function syncFromCalendar() {
   console.info('Starting sync from calendar');
   // Get calendar and events
@@ -365,16 +362,15 @@ function syncFromCalendar() {
   }
 }
 
-// --------------------------------------------------------------------------------------
-// ---------------------- Synchronize from spreadsheet to calendar ----------------------
-// --------------------------------------------------------------------------------------
+// Synchronize from spreadsheet to calendar.
 function syncToCalendar() {
   console.info('Starting sync to calendar');
   const scriptStart = Date.now();
   // Get calendar and events
   const calendar = CalendarApp.getCalendarById(calendarId);
-  if (!calendar) errorAlert('Cannot find calendar. Check instructions for set up.');
-
+  if (!calendar) {
+    errorAlert('Cannot find calendar. Check instructions for set up.');
+  }
   const calEvents = calendar.getEvents(beginDate, endDate);
   const calEventIds = calEvents.map(function(val) {
     return val.getId();
@@ -484,6 +480,13 @@ function syncToCalendar() {
     }
     console.info('%d updates, time: %d msecs', numUpdates, Date.now() - scriptStart);
 
+    // BUT USEFUL TEST CODE :) ----------------------------
+    Logger.log('Event');
+    Logger.log(sheetEvent);
+    const breaker = true;
+    if (breaker) return;
+    // ----------------------------------------------------
+
     if (addEvent) {
       var newEvent;
       sheetEvent.sendInvites = SEND_EMAIL_INVITES;
@@ -526,30 +529,32 @@ function syncToCalendar() {
   }
 
   // Remove any calendar events not found in the spreadsheet
-  // var numToRemove = calEventIds.reduce(function(prevVal, curVal) {
-  //   if (curVal !== null) {
-  //     prevVal++;
-  //   }
-  //   return prevVal;
-  // }, 0);
-  // if (numToRemove > 0) {
-  //   var ui = SpreadsheetApp.getUi();
-  //   var response = ui.alert('Delete ' + numToRemove + ' calendar event(s) not found in spreadsheet?',
-  //         ui.ButtonSet.YES_NO);
-  //   if (response == ui.Button.YES) {
-  //     var numRemoved = 0;
-  //     calEventIds.forEach(function(id, idx) {
-  //       if (id != null) {
-  //         calEvents[idx].deleteEvent();
-  //         Utilities.sleep(THROTTLE_SLEEP_TIME);
-  //         numRemoved++;
-  //         if (numRemoved % 10 === 0) {
-  //           console.info('%d events removed, time: %d msecs', numRemoved, Date.now() - scriptStart);
-  //         }
-  //       }
-  //     });
-  //   }
-  // }
+  const numToRemove = calEventIds.reduce(function(prevVal, curVal) {
+    if (curVal !== null) {
+      prevVal++;
+    }
+    return prevVal;
+  }, 0);
+  if (numToRemove > 0) {
+    const ui = SpreadsheetApp.getUi();
+    const response = ui.alert(
+      `Delete ${numToRemove} calendar event(s) not found in spreadsheet?`,
+      ui.ButtonSet.YES_NO
+    );
+    if (response == ui.Button.YES) {
+      let numRemoved = 0;
+      calEventIds.forEach(function(id, idx) {
+        if (id != null) {
+          calEvents[idx].deleteEvent();
+          Utilities.sleep(THROTTLE_SLEEP_TIME);
+          numRemoved++;
+          if (numRemoved % 10 === 0) {
+            console.info('%d events removed, time: %d msecs', numRemoved, Date.now() - scriptStart);
+          }
+        }
+      });
+    }
+  }
 }
 
 // Set up a trigger to automatically update the calendar when the spreadsheet is
