@@ -1,0 +1,57 @@
+{
+  "name": "apps-script-starter",
+  "version": "4.7.0",
+  "description": "Setup a local development environment for Google Apps Script",
+  "author": {
+    "name": "Amit Agarwal",
+    "email": "amit@labnol.org",
+    "url": "https://www.labnol.org"
+  },
+  "homepage": "https://digitalinspiration.com/",
+  "license": "MIT",
+  "main": "src/index.js",
+  "scripts": {
+    "build": "webpack",
+    "upload": "clasp push",
+    "deploy": "npm run build && npm run upload",
+    "deploy:prod": "cross-env NODE_ENV=production npm run deploy"
+  },
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/labnol/apps-script-starter.git"
+  },
+  "keywords": [
+    "google-apps-script",
+    "gsuite",
+    "apps-script"
+  ],
+  "dependencies": {
+    "crypto-js": "3.1.9-1"
+  },
+  "devDependencies": {
+    "@babel/core": "^7.9.0",
+    "@babel/plugin-proposal-object-rest-spread": "^7.9.0",
+    "@babel/plugin-proposal-optional-chaining": "^7.9.0",
+    "@babel/preset-env": "^7.9.0",
+    "@google/clasp": "^2.3.0",
+    "@types/google-apps-script": "^1.0.11",
+    "babel-eslint": "^10.1.0",
+    "babel-loader": "^8.1.0",
+    "babel-plugin-add-module-exports": "^1.0.2",
+    "clean-webpack-plugin": "^3.0.0",
+    "copy-webpack-plugin": "^5.1.1",
+    "cross-env": "^7.0.2",
+    "eslint": "^6.8.0",
+    "eslint-config-airbnb-base": "^14.1.0",
+    "eslint-config-prettier": "^6.10.0",
+    "eslint-loader": "^3.0.3",
+    "eslint-plugin-googleappsscript": "^1.0.3",
+    "eslint-plugin-import": "^2.20.1",
+    "eslint-plugin-prettier": "^3.1.2",
+    "gas-webpack-plugin": "^1.0.2",
+    "prettier": "^1.19.1",
+    "terser-webpack-plugin": "^2.3.5",
+    "webpack": "^4.42.0",
+    "webpack-cli": "^3.3.11"
+  }
+}
