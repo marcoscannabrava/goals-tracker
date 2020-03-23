@@ -102,7 +102,7 @@ function reformatEvent(row, idxMap, keysToAdd) {
   return reformatted;
 }
 
-// Converts a calendar event to a psuedo-sheet event.
+// Converts a calendar event to a pseudo-sheet event.
 function convertCalEvent(calEvent) {
   convertedEvent = {
     id: calEvent.getId(),

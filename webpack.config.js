@@ -21,7 +21,7 @@ const isProduction = process.env.NODE_ENV === 'production';
 module.exports = {
   mode: isProduction ? 'production' : 'none',
   context: __dirname,
-  entry: `${src}/index.js`,
+  entry: `${src}/sheet_to_cal.js`,
   output: {
     filename: `code-${version}.js`,
     path: destination,
