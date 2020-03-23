@@ -1,13 +1,3 @@
-// --------------------- [TODO] ---------------------
-// - iterate goal hash: breakdown into weekly goals and consolidate into weekly goal hash ???
-// - build consolidated event hash (same week => same event)
-
-// Used Dave's work as a starting point: https://github.com/Davepar/gcalendarsync
-
-// Set this value to match your calendar!!!
-// Calendar ID can be found in the "Calendar Address" section of the Calendar Settings.
-const calendarId = 'mpcannabrava@gmail.com';
-
 const titleRowMap = {
   year: 'Year',
   month: 'Month',
@@ -23,12 +13,16 @@ function onOpen() {
   const spreadsheet = SpreadsheetApp.getActiveSpreadsheet();
   const menuEntries = [
     {
-      name: 'Update to Calendar',
+      name: 'Update to Calendar Tasks',
       functionName: 'syncToCalendar'
     }
   ];
   spreadsheet.addMenu('Calendar Sync', menuEntries);
 }
+// Responds do HTTP GET request calling the syncToSheet method
+// function doGet() {
+//   return ContentService.createTextOutput('Hello, world!');
+// }
 
 // Creates a mapping array between spreadsheet column and event field name
 function createIdxMap(row) {
@@ -125,9 +119,14 @@ function goalBreakdown(data) {
     sundays[month].forEach(sunday => {
       const listOfWeeklyGoals = [];
       goalMap[month].forEach(entry => {
-        listOfWeeklyGoals.push(
-          `${entry.name}: ${entry.goal / sundays[month].length}${entry.units} `
-        );
+        listOfWeeklyGoals.push({
+          name: entry.name,
+          goal: entry.goal / sundays[month].length,
+          units: entry.units,
+          completed: false,
+          week_sunday: sunday,
+          month: entry.month
+        });
       });
       // add weekly events
       weeklyGoals[sunday] = listOfWeeklyGoals;
@@ -150,25 +149,19 @@ function getTaskLists() {
 }
 
 // (date: datetime Obj)
-function addTask(title, date, notes) {
-  const taskList = getTaskLists().find(list => list.name === 'Goals'); // Error: Both tasklists are named 'Goals'... Why?
+function addTask(title, date, notes, taskList) {
   const task = {
     title,
     due: date.toISOString(),
     notes
   };
-  Tasks.Tasks.insert(task, taskList.id);
+  Logger.log(JSON.stringify(Tasks.Tasks.insert(task, taskList.id)));
 }
 
 // ---------------------- Synchronize from spreadsheet to calendar ----------------------
 function syncToCalendar() {
-  console.info('Starting sync to calendar');
-  // Get calendar and events
-  const calendar = CalendarApp.getCalendarById(calendarId);
-  if (!calendar) errorAlert('Cannot find calendar. Check instructions for set up.');
-
   // Get spreadsheet and data
-  const sheet = SpreadsheetApp.getActiveSpreadsheet().getSheetByName('GoalsTemp');
+  const sheet = SpreadsheetApp.getActiveSpreadsheet().getSheetByName('Goals');
   const range = sheet.getDataRange();
   const data = range.getValues();
   if (data.length < 2) {
@@ -176,35 +169,59 @@ function syncToCalendar() {
     return;
   }
 
+  const sheetLog = SpreadsheetApp.getActiveSpreadsheet().getSheetByName('logger'); // logger
+
   // Breakdown monthly goals into weekly goals
   const weeklyGoals = goalBreakdown(data);
 
+  // Log goals in logger
+  sheetLog.getRange('D1').setValue('Sunday');
+  sheetLog.getRange('E1').setValue('weeklyGoals');
+  sheetLog.getRange('F1').setValue('InTasks?');
+  Object.keys(weeklyGoals).forEach((sunday, index) => {
+    sheetLog.getRange(`D${index + 2}`).setValue(sunday);
+    sheetLog.getRange(`E${index + 2}`).setValue(JSON.stringify(weeklyGoals[sunday]));
+  });
+
   // Create calendar Tasks
-  Object.keys(weeklyGoals).forEach(sunday => {
+  let taskList = getTaskLists().find(list => list.name === 'Goals');
+  if (taskList === undefined) {
+    taskList = Tasks.Tasklists.insert({ id: 'goals', title: 'Goals' });
+  }
+
+  Object.keys(weeklyGoals).forEach((sunday, index) => {
     weeklyGoals[sunday].forEach(goal => {
-      addTask(goal, new Date(sunday), 'you can do it!');
+      Utilities.sleep(500);
+      addTask(
+        `${goal.name}: ${goal.goal}${goal.units} `,
+        new Date(sunday),
+        'you can do it!',
+        taskList
+      );
     });
+    sheetLog.getRange(`F${index + 2}`).setValue('true');
   });
 }
 
-function getCompletedTasks(taskListId) {
-  const optionalArgs = {
-    maxResults: 100,
-    showHidden: true
-  };
-  const tasks = Tasks.Tasks.list(taskListId, optionalArgs);
-  const SPREADSHEET = SpreadsheetApp.getActiveSpreadsheet();
-  const rngStartReport = SPREADSHEET.getRange('A1');
-  let k = 0;
-  if (tasks.items) {
-    for (let i = 0; i < tasks.items.length; i++) {
-      const task = tasks.items[i];
-      rngStartReport.offset(k, 0).setValue(task.title);
-      rngStartReport.offset(k, 1).setValue(task.status);
-      k++;
-      Logger.log('Task with title "%s" and ID "%s" was found.', task.title, task.id);
-    }
-  } else {
-    Logger.log('No tasks found.');
-  }
+function temp() {
+  const sheet = SpreadsheetApp.getActiveSpreadsheet().getSheetByName('GoalsTemp');
+  const range = sheet.getDataRange();
+  const data = range.getValues();
+
+  const goalMap = monthlyGoalMapper(data);
+  Logger.log(JSON.stringify(goalMap));
+  const breaker = true;
+  if (breaker) return;
+
+  const taskList = getTaskLists().find(list => list.name === 'Goals');
+
+  Object.keys(goalMap).forEach(entry => {
+    Utilities.sleep(500);
+    addTask(
+      `${entry.name}: ${entry.goal}${entry.units} `,
+      new Date('2020-03-24'),
+      'you can do it!',
+      taskList
+    );
+  });
 }

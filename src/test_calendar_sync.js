@@ -35,7 +35,52 @@ sheetLog.getRange('A5').setValue('testDates:');
 sheetLog.getRange('B5').setValue(JSON.stringify(testDates));
 
 // ADD EVENT SNIPPET
-// const newEvent = calendar.createAllDayEvent('Weekly Goals', new Date(sunday), {
-//   description: weeklyGoals[sunday].join('\n')
-// });
-// newEvent.setColor('10');
+// Get calendar and events
+const calendar = CalendarApp.getAllOwnedCalendars()[0];
+const newEvent = calendar.createAllDayEvent('Weekly Goals', new Date(sunday), {
+  description: weeklyGoals[sunday].join('\n')
+});
+newEvent.setColor('10');
+
+// to be used
+function getCompletedTasks(taskListId) {
+  const optionalArgs = {
+    maxResults: 100,
+    showHidden: true
+  };
+  const tasks = Tasks.Tasks.list(taskListId, optionalArgs);
+  const SPREADSHEET = SpreadsheetApp.getActiveSpreadsheet();
+  const rngStartReport = SPREADSHEET.getRange('A1');
+  let k = 0;
+  if (tasks.items) {
+    for (let i = 0; i < tasks.items.length; i++) {
+      const task = tasks.items[i];
+      rngStartReport.offset(k, 0).setValue(task.title);
+      rngStartReport.offset(k, 1).setValue(task.status);
+      k++;
+      Logger.log('Task with title "%s" and ID "%s" was found.', task.title, task.id);
+    }
+  } else {
+    Logger.log('No tasks found.');
+  }
+}
+
+function temp() {
+  const sheet = SpreadsheetApp.getActiveSpreadsheet().getSheetByName('GoalsTemp');
+  const range = sheet.getDataRange();
+  const data = range.getValues();
+
+  const goalMap = monthlyGoalMapper(data);
+
+  const taskList = getTaskLists().find(list => list.name === 'Goals');
+
+  goalMap['2020-03-01'].forEach(entry => {
+    Utilities.sleep(500);
+    addTask(
+      `${entry.name}: ${entry.goal}${entry.units} `,
+      new Date('2020-03-24'),
+      'you can do it!',
+      taskList
+    );
+  });
+}
