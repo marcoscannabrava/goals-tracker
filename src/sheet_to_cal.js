@@ -155,7 +155,7 @@ function addTask(title, date, notes, taskList) {
     due: date.toISOString(),
     notes
   };
-  Logger.log(JSON.stringify(Tasks.Tasks.insert(task, taskList.id)));
+  Tasks.Tasks.insert(task, taskList.id);
 }
 
 // ---------------------- Synchronize from spreadsheet to calendar ----------------------
