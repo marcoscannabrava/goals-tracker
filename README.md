@@ -1,5 +1,5 @@
 # Goals Tracker Sheet ![](https://img.icons8.com/color/48/000000/google-sheets.png)
-### Currently it's a Google Sheet that breaks down your monthly goals into weekly goals and automatically adds them to a "Goals" list on Google Tasks.
+Currently it's a Google Sheet that breaks down your monthly goals into weekly goals and automatically adds them to a "Goals" list on Google Tasks.
 
 ## Open Source Mission
 The vision for this project is to become a full fledged goal tracking solution entirely based in Google products. We welcome new collaborators with all skill levels, this project started as a learning experience and there's still a lot to be done and learned.
